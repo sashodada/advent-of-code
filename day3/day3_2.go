@@ -8,17 +8,19 @@ import (
 	"unicode"
 )
 
-func hasSymbolNeighbor(matrix [][]rune, row int, startCol int, endCol int) bool {
+func getCoordKey(x int, y int) string {
+	return fmt.Sprintf("%d,%d", x, y)
+}
+
+func appendPartToStarsMap(matrix [][]rune, row int, startCol int, endCol int, starsMap map[string][]int, partNumber int) {
 	for i := max(row-1, 0); i <= min(row+1, len(matrix)-1); i++ {
 		for j := max(startCol-1, 0); j <= min(endCol+1, len(matrix[i])-1); j++ {
-			char := matrix[i][j]
-			if !unicode.IsNumber(char) && char != '.' {
-				return true
+			if matrix[i][j] == '*' {
+				key := getCoordKey(i, j)
+				starsMap[key] = append(starsMap[key], partNumber)
 			}
 		}
 	}
-
-	return false
 }
 
 func main() {
@@ -33,7 +35,7 @@ func main() {
 		matrix = append(matrix, append(lineArr, '.'))
 	}
 
-	var partNumberSum int
+	starsMap := make(map[string][]int)
 	for i, row := range matrix {
 		inNumber := false
 		var currNumber int
@@ -49,9 +51,7 @@ func main() {
 				cellDigit, _ := strconv.Atoi(string(cell))
 				currNumber = currNumber*10 + cellDigit
 			} else if inNumber {
-				if hasSymbolNeighbor(matrix, i, firstDigitIndex, j-1) {
-					partNumberSum += currNumber
-				}
+				appendPartToStarsMap(matrix, i, firstDigitIndex, j-1, starsMap, currNumber)
 
 				currNumber = 0
 				inNumber = false
@@ -60,5 +60,12 @@ func main() {
 		}
 	}
 
-	fmt.Println(partNumberSum)
+	var partRatioSum int
+	for _, a := range starsMap {
+		if len(a) == 2 {
+			partRatioSum += a[0] * a[1]
+		}
+	}
+
+	fmt.Println(partRatioSum)
 }
